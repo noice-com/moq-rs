@@ -83,6 +83,19 @@ pub name:
 		-f mp4 -movflags cmaf+separate_moof+delay_moov+skip_trailer+frag_every_frame \
 		- | cargo run --bin moq-karp -- publish "http://localhost:4443/demo/{{name}}"
 
+# Publish a video using ffmpeg to the localhost relay server
+pub-i3d name:
+	# Pre-build the binary so we don't queue media while compiling.
+	cargo build --bin moq-karp
+
+	# Run ffmpeg and pipe the output to moq-karp
+	ffmpeg -hide_banner -v quiet \
+		-stream_loop -1 -re \
+		-i "dev/{{name}}.fmp4" \
+		-c copy \
+		-f mp4 -movflags cmaf+separate_moof+delay_moov+skip_trailer+frag_every_frame \
+		- | cargo run --bin moq-karp -- publish "https://moq-relay.i3d.dev.noice.com:9443/demo/{{name}}"
+
 # Publish a video using ffmpeg directly from moq-karp to the localhost
 pub-serve name:
 	# Pre-build the binary so we don't queue media while compiling.
