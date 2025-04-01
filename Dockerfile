@@ -9,9 +9,7 @@ COPY . ./
 # There's also issues with the cache mount since it builds into /usr/local/cargo/bin
 # We can't mount that without clobbering cargo itself.
 # We instead we build the binaries and copy them to the cargo bin directory.
-RUN --mount=type=cache,target=/usr/local/cargo/registry \
-	--mount=type=cache,target=/build/target \
-	cargo build --release && cp /build/target/release/moq-* /usr/local/cargo/bin
+RUN cargo build --release && cp /build/target/release/moq-* /usr/local/cargo/bin
 
 ## build-wasm
 FROM rust:slim AS build-wasm
@@ -31,9 +29,7 @@ RUN npm ci
 COPY . ./
 
 # Build it
-RUN --mount=type=cache,target=/usr/local/cargo/registry \
-	--mount=type=cache,target=/build/target \
-	npm run build
+RUN npm run build
 
 # moq-clock
 FROM debian:bookworm-slim AS moq-clock
