@@ -51,8 +51,8 @@ ENTRYPOINT ["moq-karp"]
 FROM caddy:alpine AS moq-web
 EXPOSE 443
 COPY --from=build-wasm /build/dist /srv
-COPY moq-web/src/demo/index.html /src/index.html
-COPY moq-web/src/demo/index.ts /src/index.ts
+COPY moq-web/src/demo/index.html /srv/index.html
+COPY moq-web/src/demo/index.ts /srv/index.ts
 ENTRYPOINT ["caddy", "file-server", "--root", "/srv", "--listen", ":443"]
 
 ## moq-relay
