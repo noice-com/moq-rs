@@ -34,8 +34,17 @@
 			"import": "./dist/meet/ui.js"
 		}
 	},
-	"sideEffects": ["./dist/rust.*", "./dist/snippets/*", "./dist/*/element.js", "./dist/*/ui.js"],
-	"files": ["dist", "README.md", "LICENSE*"],
+	"sideEffects": [
+		"./dist/rust.*",
+		"./dist/snippets/*",
+		"./dist/*/element.js",
+		"./dist/*/ui.js"
+	],
+	"files": [
+		"dist",
+		"README.md",
+		"LICENSE*"
+	],
 	"scripts": {
 		"build": "npm run build:prod && npm run build:tsc",
 		"build:prod": "wasm-pack build --out-dir ../dist moq-web --release --scope kixelated --out-name rust",
@@ -67,5 +76,6 @@
 		"webpack": "^5.97.1",
 		"webpack-cli": "^6.0.1",
 		"webpack-dev-server": "^5.2.0"
-	}
+	},
+	"packageManager": "yarn@1.22.22+sha1.ac34549e6aa8e7ead463a7407e1c7390f61a6610"
 }
