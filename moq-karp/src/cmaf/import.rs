@@ -1,10 +1,10 @@
 use super::{Error, Result};
 use crate::{
-	Audio, BroadcastProducer, Dimensions, Frame, Timestamp, Track, TrackProducer, Video, VideoCodec, AAC, AV1, H264,
+	Audio, AudioCodec, BroadcastProducer, Dimensions, Frame, Timestamp, Track, TrackProducer, Video, VideoCodec, AAC, AV1, H264,
 	H265, VP9,
 };
 use bytes::{Bytes, BytesMut};
-use mp4_atom::{Any, AsyncReadFrom, Atom, DecodeMaybe, Esds, Mdat, Moof, Moov, Tfdt, Trak, Trun};
+use mp4_atom::{Any, AsyncReadFrom, Atom, DecodeMaybe, Mdat, Moof, Moov, Tfdt, Trak, Trun};
 use std::{collections::HashMap, time::Duration};
 use tokio::io::{AsyncRead, AsyncReadExt};
 
@@ -254,30 +254,74 @@ impl Import {
 
 		let track = match codec {
 			mp4_atom::Codec::Mp4a(mp4a) => {
-				let desc = &mp4a
-					.esds
-					.as_ref()
-					.ok_or(Error::MissingBox(Esds::KIND))?
-					.es_desc
-					.dec_config;
-
-				// TODO Also support mp4a.67
-				if desc.object_type_indication != 0x40 {
-					return Err(Error::UnsupportedCodec("MPEG2".to_string()));
-				}
-
-				Audio {
-					track,
-					codec: AAC {
-						profile: desc.dec_specific.profile,
+				// For all mp4a containers, check if we have esds
+				let desc = match &mp4a.esds {
+					Some(esds) => Some(&esds.es_desc.dec_config),
+					None => {
+						// This might be Opus in MP4 which doesn't use esds
+						tracing::info!("MP4A codec without ESDS found - could be Opus");
+						None
 					}
-					.into(),
-					sample_rate: mp4a.samplerate.integer() as _,
-					channel_count: mp4a.channelcount as _,
-					bitrate: Some(std::cmp::max(desc.avg_bitrate, desc.max_bitrate) as _),
+				};
+
+				// If we have an esds descriptor, check if it's Opus
+				if let Some(desc) = desc {
+					// Check if this object type indicates Opus (this is a guess, may need adjustment)
+					if desc.object_type_indication == 0xAD {
+						tracing::info!("Found Opus audio codec in mp4a container");
+						return Ok(Audio {
+							track,
+							codec: AudioCodec::Opus,
+							sample_rate: mp4a.samplerate.integer() as _,
+							channel_count: mp4a.channelcount as _,
+							bitrate: None,
+						});
+					}
+
+					// Handle regular AAC in MP4
+					// TODO Also support mp4a.67
+					if desc.object_type_indication != 0x40 {
+						return Err(Error::UnsupportedCodec(format!("MPEG object type: 0x{:X}", desc.object_type_indication)));
+					}
+
+					Audio {
+						track,
+						codec: AAC {
+							profile: desc.dec_specific.profile,
+						}
+						.into(),
+						sample_rate: mp4a.samplerate.integer() as _,
+						channel_count: mp4a.channelcount as _,
+						bitrate: Some(std::cmp::max(desc.avg_bitrate, desc.max_bitrate) as _),
+					}
+				} else {
+					// No ESDS - assume it's Opus for now (try it and see)
+					tracing::info!("Trying to handle as Opus without ESDS");
+					Audio {
+						track,
+						codec: AudioCodec::Opus,
+						sample_rate: mp4a.samplerate.integer() as _,
+						channel_count: mp4a.channelcount as _,
+						bitrate: None,
+					}
 				}
 			}
-			mp4_atom::Codec::Unknown(unknown) => return Err(Error::UnsupportedCodec(unknown.to_string())),
+			mp4_atom::Codec::Unknown(unknown) => {
+				// Check if this is Opus that's not properly recognized
+				let unknown_str = unknown.to_string();
+				if unknown_str.eq_ignore_ascii_case("opus") {
+					tracing::info!("Found Opus audio codec as unknown codec");
+					Audio {
+						track,
+						codec: AudioCodec::Opus,
+						sample_rate: 48000, // Opus typically uses 48kHz
+						channel_count: 2,   // Default to stereo
+						bitrate: None,
+					}
+				} else {
+					return Err(Error::UnsupportedCodec(unknown_str));
+				}
+			}
 			_ => return Err(Error::UnsupportedCodec("unknown".to_string())),
 		};
 
