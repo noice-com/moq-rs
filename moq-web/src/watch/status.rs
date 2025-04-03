@@ -1,5 +1,5 @@
 use baton::Baton;
-use wasm_bindgen::prelude::wasm_bindgen;
+use wasm_bindgen::prelude::*;
 
 use crate::{ConnectionStatus, Error, Result};
 
@@ -53,6 +53,15 @@ impl WatchStatus {
 			Some(state) => Ok(state),
 			None => Err(self.error().await),
 		}
+	}
+
+	// Expose the backend for JavaScript to access
+	// This is now implemented in JavaScript via bridge.ts
+	// The JavaScript side will handle getting the backend reference
+	// We don't actually need to implement this in Rust as it's intercepted by the proxy
+	#[wasm_bindgen(getter)]
+	pub fn backend(&self) -> JsValue {
+		JsValue::null()
 	}
 
 	async fn error(&mut self) -> Error {
