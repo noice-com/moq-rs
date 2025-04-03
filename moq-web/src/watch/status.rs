@@ -55,15 +55,6 @@ impl WatchStatus {
 		}
 	}
 
-	// Expose the backend for JavaScript to access
-	// This is now implemented in JavaScript via bridge.ts
-	// The JavaScript side will handle getting the backend reference
-	// We don't actually need to implement this in Rust as it's intercepted by the proxy
-	#[wasm_bindgen(getter)]
-	pub fn backend(&self) -> JsValue {
-		JsValue::null()
-	}
-
 	async fn error(&mut self) -> Error {
 		if let Some(err) = self.status.error.get() {
 			return err.clone();

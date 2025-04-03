@@ -18,17 +18,6 @@ pub struct Backend {
 	renderer: Renderer,
 }
 
-#[wasm_bindgen]
-impl Backend {
-	// Add a function to register an audio callback from JavaScript
-	pub fn register_audio_callback(&self, _callback: js_sys::Function) -> Result<()> {
-		tracing::info!("Audio callback registered from JavaScript");
-		// The callback will be called from bridge.ts
-		// This function just serves as a marker to confirm the backend supports audio callbacks
-		Ok(())
-	}
-}
-
 impl Backend {
 	pub fn new(controls: ControlsRecv, status: StatusSend) -> Self {
 		Self {
@@ -165,16 +154,6 @@ impl Backend {
 					let latency = latency.ok_or(Error::Closed)?;
 					if let Some(video) = self.video.as_mut() {
 						 video.track.set_latency(latency);
-					}
-				},
-				volume = self.controls.volume.next() => {
-					let volume = volume.ok_or(Error::Closed)?;
-					if let Some(audio) = &self.audio {
-						// Need to cast to mutable reference to update volume
-						let audio_ptr = audio as *const Audio as *mut Audio;
-						unsafe {
-							(*audio_ptr).set_volume(volume as f32);
-						}
 					}
 				},
 				else => return Ok(()),
