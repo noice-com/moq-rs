@@ -10,13 +10,10 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
 const config = {
-	entry: {
-		// Main application
-		main: ["./moq-web/src/index.ts"],
-	},
+	entry: "./moq-web/src/demo/index.ts",
 	output: {
 		path: path.resolve(__dirname, "dist"),
-		filename: "[name].js",
+		filename: "index.js",
 	},
 	plugins: [
 		new WasmPackPlugin({
@@ -59,7 +56,7 @@ const config = {
 		],
 	},
 	resolve: {
-		extensions: [".ts", ".tsx", ".js", ".mjs"],
+		extensions: [".ts", ".tsx", ".js"],
 		alias: {
 			"@rust": path.resolve(__dirname, "dist", "rust"),
 		},

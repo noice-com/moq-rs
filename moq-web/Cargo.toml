@@ -11,6 +11,7 @@ description = "Web implementation for MoQ utilizing WebAssembly+Typescript"
 crate-type = ["cdylib", "rlib"]
 
 [dependencies]
+bytes = "1"
 wasm-bindgen = "0.2"
 wasm-bindgen-futures = "0.4"
 
@@ -22,7 +23,7 @@ gloo-net = "0.6"
 moq-karp = { version = "0.15", path = "../moq-karp", default-features = false }
 moq-async = { version = "0.1", path = "../moq-async" }
 web-streams = "0.1.1"
-web-codecs = "0.3.5"
+web-codecs = { path = "../../web-rs/web-codecs" }
 web-time = "1"
 tokio = { version = "1", features = ["sync"] }
 
@@ -66,4 +67,15 @@ features = [
 	"MediaStreamTrackProcessor",
 	"MediaStreamTrackProcessorInit",
 	"ReadableStreamDefaultReader",
+
+	# Audio
+	"AudioData",
+	"AudioDecoderInit",
+	"AudioDecoderConfig",
+	"AudioDecoder",
+	"AudioEncoderConfig",
+	"EncodedAudioChunk",
+	"EncodedAudioChunkInit",
+	"EncodedAudioChunkType",
+
 ]

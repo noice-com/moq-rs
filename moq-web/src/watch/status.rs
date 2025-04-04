@@ -1,5 +1,5 @@
 use baton::Baton;
-use wasm_bindgen::prelude::*;
+use wasm_bindgen::prelude::wasm_bindgen;
 
 use crate::{ConnectionStatus, Error, Result};
 

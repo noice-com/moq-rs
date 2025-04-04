@@ -107,45 +107,19 @@ impl Backend {
 					// Handle audio track
 					if let Some(info) = catalog.audio.first() {
 						tracing::info!(?info, "Loading audio track");
+						let mut track = self.broadcast.as_mut().unwrap().track(&info.track)?;
 
-						// Create a simpler approach to error handling
-						let track_result = self.broadcast.as_mut().unwrap().track(&info.track);
-						match track_result {
-							Ok(mut track) => {
-								track.set_latency(self.controls.latency.get());
+						let audio = Audio::new(track, info.clone())?;
+						self.audio = Some(audio);
 
-								// Create a new audio handler
-								match Audio::new(track, info.clone()) {
-									Ok(mut audio) => {
-										// Set volume
-										audio.set_volume(self.controls.volume.get() as f32);
-
-										tracing::info!("Audio track initialized successfully, starting processing");
-
-										// Process audio frames in a separate task
-										spawn_local(async move {
-											if let Err(err) = audio.process().await {
-												tracing::error!(?err, "Audio processing error");
-											} else {
-												tracing::info!("Audio processing completed normally");
-											}
-										});
-									},
-									Err(err) => {
-										tracing::warn!("Failed to initialize audio handler: {:?}", err);
-									}
-								}
-							},
-							Err(err) => {
-								tracing::warn!("Failed to get audio track: {:?}", err);
-							}
-						}
 					} else {
 						tracing::info!("No audio track found");
 					}
 				},
 				Some(frame) = async { self.video.as_mut()?.frame().await.transpose() } => {
 					self.renderer.push(frame?);
+				},
+				Some(frame) = async { self.audio.as_mut()?.frame().await.transpose() } => {
 				},
 				_ = self.controls.paused.next() => {
 					// TODO temporarily unsubscribe on pause
