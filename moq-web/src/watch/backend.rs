@@ -1,9 +1,11 @@
 use moq_karp::BroadcastConsumer;
 use wasm_bindgen_futures::spawn_local;
+use wasm_bindgen::prelude::*;
 
-use super::{ControlsRecv, Renderer, StatusSend, Video};
+use super::{Audio, ControlsRecv, Renderer, StatusSend, Video};
 use crate::{Connect, ConnectionStatus, Error, Result};
 
+#[wasm_bindgen]
 pub struct Backend {
 	controls: ControlsRecv,
 	status: StatusSend,
@@ -11,6 +13,7 @@ pub struct Backend {
 	connect: Option<Connect>,
 	broadcast: Option<BroadcastConsumer>,
 	video: Option<Video>,
+	audio: Option<Audio>,
 
 	renderer: Renderer,
 }
@@ -26,6 +29,7 @@ impl Backend {
 			connect: None,
 			broadcast: None,
 			video: None,
+			audio: None,
 		}
 	}
 
@@ -46,6 +50,7 @@ impl Backend {
 
 					self.broadcast = None;
 					self.video = None;
+					self.audio = None;
 
 					if let Some(url) = url {
 						self.connect = Some(Connect::new(url));
@@ -76,10 +81,12 @@ impl Backend {
 							// Note: We keep trying because the stream might come online later.
 							self.status.connection.update(ConnectionStatus::Offline);
 							self.video = None;
+							self.audio = None;
 							continue;
 						},
 					};
 
+					// Handle video track
 					// TODO add an ABR module
 					if let Some(info) = catalog.video.first() {
 						tracing::info!(?info, "Loading video track");
@@ -97,9 +104,22 @@ impl Backend {
 						self.video = None;
 					}
 
+					// Handle audio track
+					if let Some(info) = catalog.audio.first() {
+						tracing::info!(?info, "Loading audio track");
+						let mut track = self.broadcast.as_mut().unwrap().track(&info.track)?;
+
+						let audio = Audio::new(track, info.clone())?;
+						self.audio = Some(audio);
+
+					} else {
+						tracing::info!("No audio track found");
+					}
 				},
 				Some(frame) = async { self.video.as_mut()?.frame().await.transpose() } => {
 					self.renderer.push(frame?);
+				},
+				Some(frame) = async { self.audio.as_mut()?.frame().await.transpose() } => {
 				},
 				_ = self.controls.paused.next() => {
 					// TODO temporarily unsubscribe on pause

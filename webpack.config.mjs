@@ -63,8 +63,8 @@ const config = {
 	},
 	devServer: {
 		open: true,
-		hot: false,
-		liveReload: false,
+		hot: true,
+		liveReload: true,
 	},
 	optimization: {
 		sideEffects: true,
