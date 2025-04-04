@@ -1,2 +1,7 @@
 [build]
-rustflags = ["--cfg=web_sys_unstable_apis"]
+# rustflags = ["--cfg=web_sys_unstable_apis"]
+
+rustflags = ["--cfg=web_sys_unstable_apis", "-C", "target-feature=+atomics,+bulk-memory,+mutable-globals,+reference-types"]
+
+[unstable]
+build-std = ["std", "panic_abort"]

@@ -43,6 +43,7 @@ features = [
 	"Node",
 	"Text",
 	"HtmlVideoElement",
+	"Url",
 
 	# Custom elements
 	"HtmlSlotElement",
@@ -68,12 +69,22 @@ features = [
 	"MediaStreamTrackProcessorInit",
 	"ReadableStreamDefaultReader",
 
+	# dependent_module
+	"Blob",
+	"BlobPropertyBag",
+
 	# Audio
 	"AudioData",
 	"AudioDecoderInit",
 	"AudioDecoderConfig",
 	"AudioDecoder",
 	"AudioEncoderConfig",
+	"AudioContext",
+	"AudioWorklet",
+	"AudioWorkletNodeOptions",
+	"AudioWorkletProcessor",
+	"AudioWorkletNode",
+	"AudioDestinationNode",
 	"EncodedAudioChunk",
 	"EncodedAudioChunkInit",
 	"EncodedAudioChunkType",

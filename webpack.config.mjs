@@ -20,6 +20,7 @@ const config = {
 			crateDirectory: path.resolve(__dirname, "moq-web"),
 			outDir: path.resolve(__dirname, "dist"),
 			args: "--log-level warn",
+			extraArgs: "--target web",
 			outName: "rust",
 		}),
 		new HtmlWebpackPlugin({
@@ -53,6 +54,10 @@ const config = {
 				test: /\.css$/i,
 				use: [MiniCssExtractPlugin.loader, "css-loader"],
 			},
+			{
+                test: /\.wasm$/,
+                type: "asset/inline",
+            },
 		],
 	},
 	resolve: {
@@ -62,7 +67,7 @@ const config = {
 		},
 	},
 	devServer: {
-		open: true,
+		open: false,
 		hot: true,
 		liveReload: true,
 	},
