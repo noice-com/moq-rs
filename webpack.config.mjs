@@ -54,10 +54,6 @@ const config = {
 				test: /\.css$/i,
 				use: [MiniCssExtractPlugin.loader, "css-loader"],
 			},
-			{
-                test: /\.wasm$/,
-                type: "asset/inline",
-            },
 		],
 	},
 	resolve: {

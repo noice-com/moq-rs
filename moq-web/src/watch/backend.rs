@@ -1,9 +1,8 @@
 use moq_karp::BroadcastConsumer;
 use wasm_bindgen_futures::spawn_local;
 use wasm_bindgen::prelude::*;
-use super::wasm_audio::wasm_audio;
 
-use super::{Audio, ControlsRecv, Renderer, StatusSend, Video};
+use super::{Audio, ControlsRecv, Renderer, StatusSend, Video, AudioPlayer};
 use crate::{Connect, ConnectionStatus, Error, Result};
 
 #[wasm_bindgen]
@@ -17,12 +16,14 @@ pub struct Backend {
 	audio: Option<Audio>,
 
 	renderer: Renderer,
+	audioplayer: AudioPlayer,
 }
 
 impl Backend {
 	pub fn new(controls: ControlsRecv, status: StatusSend) -> Self {
 		Self {
 			renderer: Renderer::new(controls.clone(), status.clone()),
+			audioplayer: AudioPlayer::new().unwrap(),
 
 			controls,
 			status,
@@ -121,31 +122,31 @@ impl Backend {
 					self.renderer.push(frame?);
 				},
 				Some(frame) = async { self.audio.as_mut()?.frame().await.transpose() } => {
-					if let Ok(frame) = frame {
-						// Create a processor function that will be called by the audio worklet
-						let processor = Box::new(move |buf: &mut [f32]| {
-							// Fill the buffer with audio data from the frame
-							// This is a simplified example - in a real implementation,
-							// you would need to properly decode the audio data
-							for i in 0..buf.len() {
-								// For now, just generate a simple sine wave as a placeholder
-								// In a real implementation, you would decode the actual audio data
-								buf[i] = 0.0;
-							}
-							true // Return true to continue processing
-						});
+					// if let Ok(frame) = frame {
+					// 	// Create a processor function that will be called by the audio worklet
+					// 	let processor = Box::new(move |buf: &mut [f32]| {
+					// 		// Fill the buffer with audio data from the frame
+					// 		// This is a simplified example - in a real implementation,
+					// 		// you would need to properly decode the audio data
+					// 		for i in 0..buf.len() {
+					// 			// For now, just generate a simple sine wave as a placeholder
+					// 			// In a real implementation, you would decode the actual audio data
+					// 			buf[i] = 0.0;
+					// 		}
+					// 		true // Return true to continue processing
+					// 	});
 
-						// Initialize the audio context and processor
-						match wasm_audio(processor).await {
-							Ok(_ctx) => {
-								// Audio context initialized successfully
-								tracing::debug!("Audio context initialized");
-							},
-							Err(e) => {
-								tracing::error!("Failed to initialize audio context: {:?}", e);
-							}
-						};
-					}
+					// 	// Initialize the audio context and processor
+					// 	match wasm_audio(processor).await {
+					// 		Ok(_ctx) => {
+					// 			// Audio context initialized successfully
+					// 			tracing::debug!("Audio context initialized");
+					// 		},
+					// 		Err(e) => {
+					// 			tracing::error!("Failed to initialize audio context: {:?}", e);
+					// 		}
+					// 	};
+					// }
 				},
 				_ = self.controls.paused.next() => {
 					// TODO temporarily unsubscribe on pause

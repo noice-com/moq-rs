@@ -5,8 +5,8 @@ mod renderer;
 mod status;
 mod video;
 mod audio;
-// mod audioplayer;
-mod wasm_audio;
+mod audioplayer;
+// mod wasm_audio;
 pub use frontend::*;
 pub use status::*;
 
@@ -15,4 +15,4 @@ use backend::*;
 use renderer::*;
 use video::*;
 pub use dependent_module::*;
-// pub use wasm_audio::*;
+pub use audioplayer::*;
