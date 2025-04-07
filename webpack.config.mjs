@@ -20,7 +20,7 @@ const config = {
 			crateDirectory: path.resolve(__dirname, "moq-web"),
 			outDir: path.resolve(__dirname, "dist"),
 			args: "--log-level warn",
-			extraArgs: "--target web",
+			extraArgs: "",
 			outName: "rust",
 		}),
 		new HtmlWebpackPlugin({
